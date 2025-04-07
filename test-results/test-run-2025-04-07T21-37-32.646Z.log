@@ -1,0 +1,127 @@
+🧪 Running all Investigation Case Management tests
+================================================
+Test run started at: 4/8/2025, 7:37:32 AM
+
+🔍 Running Smoke Tests...
+------------------------
+🔍 Running Investigation Case Management smoke tests
+
+📄 Checking essential files...
+  ✅ package.json
+  ✅ next.config.ts
+  ✅ prisma/schema.prisma
+  ✅ src/app/page.tsx
+  ✅ src/app/layout.tsx
+
+📦 Checking package.json...
+  ✅ package.json looks good
+
+🗄️ Checking database schema...
+  ✅ All required database models are present
+
+🎉 All smoke tests passed successfully!
+The application structure appears to be in good shape.
+Note: These are basic structure tests and do not verify functionality.
+
+
+🧩 Running Module Tests...
+--------------------------
+🧩 Testing Investigation Case Management Modules
+
+📂 Checking core modules...
+  ✅ Evidence Management (src/components/evidence/EvidenceManagement.tsx)
+  ✅ Timeline Visualization (src/components/timeline/TimelineVisualization.tsx)
+  ✅ Storyline Analysis (src/components/storyline/StorylineAnalysis.tsx)
+  ✅ Authentication (AuthContext.tsx)
+  ✅ Case Management (src/lib/db/case.ts)
+  ✅ Evidence DB Functions (src/lib/db/evidence.ts)
+  ✅ Timeline DB Functions (src/lib/db/timeline.ts)
+
+🌐 Checking API routes...
+  ⚠️ API directory not found at expected location (src/app/api)
+
+🔒 Checking authentication setup...
+  ✅ AuthContext.tsx
+  ✅ AuthGuard.tsx
+  ✅ src/app/login/page.tsx
+  ✅ src/app/register/page.tsx
+
+✅ Module test completed!
+Note: This test only checks for the presence of files, not their functionality.
+
+
+🗄️ Running Prisma Tests...
+-------------------------
+🗄️ Testing Prisma Database Configuration
+
+📄 Checking Prisma files...
+  ✅ prisma/schema.prisma
+  ✅ prisma.ts
+  ✅ src/lib/db/prisma.ts
+
+🔍 Analyzing schema.prisma...
+  ✅ Database provider: prisma-client-js
+  ✅ Found 18 models in schema
+  📊 Models: User, Session, Case, CaseAssignment, CaseTag, Evidence, EvidenceTag, TimelineEvent, TimelineEvidence, Person, EvidencePerson, TimelinePerson, Relationship, Location, EvidenceLocation, StorylineAnalysis, Comment, ActivityLog
+  ✅ Vector database support: Yes
+
+✅ Prisma test completed!
+Note: This test only checks configuration files, not actual database connectivity.
+
+
+🎭 Running Playwright Tests...
+-----------------------------
+✅ Server is running, attempting to run Playwright tests...
+⚠️ Playwright test execution error: Command failed: npx playwright test tests/basic.spec.ts --reporter=list
+
+Running 3 tests using 3 workers
+
+Login link not found, may not be accessible from homepage
+  ✓  3 [chromium] › tests/basic.spec.ts:23:5 › has expected UI elements (857ms)
+  ✓  1 [chromium] › tests/basic.spec.ts:10:5 › can navigate to login page (882ms)
+  ✘  2 [chromium] › tests/basic.spec.ts:3:5 › has title (5.3s)
+
+
+  1) [chromium] › tests/basic.spec.ts:3:5 › has title ──────────────────────────────────────────────
+
+    Error: [31mTimed out 5000ms waiting for [39m[2mexpect([22m[31mlocator[39m[2m).[22mtoHaveTitle[2m([22m[32mexpected[39m[2m)[22m
+
+    Locator: locator(':root')
+    Expected pattern: [32m/Investigation Case Management|Next.js/[39m
+    Received string:  [31m"Create Next App"[39m
+    Call log:
+    [2m  - expect.toHaveTitle with timeout 5000ms[22m
+    [2m  - waiting for locator(':root')[22m
+    [2m    9 × locator resolved to <html lang="en">…</html>[22m
+    [2m      - unexpected value "Create Next App"[22m
+
+
+       5 |   
+       6 |   // Check that the page has loaded correctly
+    >  7 |   await expect(page).toHaveTitle(/Investigation Case Management|Next.js/);
+         |                      ^
+       8 | });
+       9 |
+      10 | test('can navigate to login page', async ({ page }) => {
+        at /Users/danielborrowman/Documents/GitHub/investigation-case-management/tests/basic.spec.ts:7:22
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/basic-has-title-chromium/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  1 failed
+    [chromium] › tests/basic.spec.ts:3:5 › has title ───────────────────────────────────────────────
+  2 passed (7.3s)
+
+
+
+📊 Test Summary
+--------------
+✅ Smoke Tests: Completed
+✅ Module Tests: Completed
+✅ Prisma Tests: Completed
+🔍 Playwright Tests: Attempted (see logs for details)
+
+📝 Full test results saved to: /Users/danielborrowman/Documents/GitHub/investigation-case-management/test-results/test-run-2025-04-07T21-37-32.646Z.log
+
+🏁 Test run completed at: 4/8/2025, 7:37:40 AM
