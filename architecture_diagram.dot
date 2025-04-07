@@ -1,0 +1,126 @@
+digraph InvestigationCaseManagement {
+    // Graph settings
+    graph [fontname="Arial", rankdir=TB, splines=ortho, nodesep=0.8, ranksep=1.0];
+    node [fontname="Arial", shape=box, style="filled,rounded", fillcolor=lightblue, margin=0.3];
+    edge [fontname="Arial"];
+
+    // Main components
+    subgraph cluster_frontend {
+        label="Frontend (macOS Native App)";
+        style=filled;
+        color=lightgrey;
+        
+        UI [label="SwiftUI Interface\n(MVVM Architecture)", fillcolor="#a8d1ff"];
+        ViewModels [label="ViewModels\n(Business Logic)", fillcolor="#a8d1ff"];
+        LocalStorage [label="Local Storage\n(Core Data / FileManager)", fillcolor="#a8d1ff"];
+        
+        subgraph cluster_ui_modules {
+            label="UI Modules";
+            style=filled;
+            color=white;
+            
+            CaseManagement [label="Case Management", fillcolor="#d4e9ff"];
+            EvidenceModule [label="Evidence Management", fillcolor="#d4e9ff"];
+            TimelineVisualization [label="Timeline Visualization", fillcolor="#d4e9ff"];
+            SearchModule [label="Search & Analysis", fillcolor="#d4e9ff"];
+            ReportingModule [label="Reporting", fillcolor="#d4e9ff"];
+        }
+    }
+    
+    subgraph cluster_backend {
+        label="Backend Services";
+        style=filled;
+        color=lightgrey;
+        
+        APILayer [label="Swift Server (Vapor)\nAPI Layer", fillcolor="#ffb3b3"];
+        BusinessLogic [label="Business Logic Layer", fillcolor="#ffb3b3"];
+        DataAccess [label="Data Access Layer", fillcolor="#ffb3b3"];
+        
+        subgraph cluster_services {
+            label="Services";
+            style=filled;
+            color=white;
+            
+            AuthService [label="Authentication Service", fillcolor="#ffd4d4"];
+            CaseService [label="Case Service", fillcolor="#ffd4d4"];
+            EvidenceService [label="Evidence Service", fillcolor="#ffd4d4"];
+            TimelineService [label="Timeline Service", fillcolor="#ffd4d4"];
+            SearchService [label="Search Service", fillcolor="#ffd4d4"];
+            AIService [label="AI Analysis Service", fillcolor="#ffd4d4"];
+        }
+    }
+    
+    subgraph cluster_data {
+        label="Data Layer";
+        style=filled;
+        color=lightgrey;
+        
+        PostgreSQL [label="PostgreSQL\n(Relational Data)", fillcolor="#b3ffb3"];
+        PGVector [label="pgvector Extension\n(Vector Embeddings)", fillcolor="#b3ffb3"];
+        Milvus [label="Milvus\n(Vector Database)", fillcolor="#b3ffb3"];
+        FileStorage [label="File Storage\n(Evidence Files)", fillcolor="#b3ffb3"];
+    }
+    
+    subgraph cluster_external {
+        label="External Services";
+        style=filled;
+        color=lightgrey;
+        
+        ClaudeAPI [label="Claude API\n(AI Analysis)", fillcolor="#ffffb3"];
+        OCRService [label="OCR Service\n(Vision Framework/Tesseract)", fillcolor="#ffffb3"];
+        CloudStorage [label="Cloud Storage\n(iCloud Integration)", fillcolor="#ffffb3"];
+    }
+    
+    // Connections between components
+    
+    // Frontend connections
+    UI -> ViewModels;
+    ViewModels -> LocalStorage;
+    
+    CaseManagement -> ViewModels;
+    EvidenceModule -> ViewModels;
+    TimelineVisualization -> ViewModels;
+    SearchModule -> ViewModels;
+    ReportingModule -> ViewModels;
+    
+    // Backend connections
+    ViewModels -> APILayer [label="HTTPS/REST"];
+    APILayer -> BusinessLogic;
+    BusinessLogic -> DataAccess;
+    
+    // Services connections
+    BusinessLogic -> AuthService;
+    BusinessLogic -> CaseService;
+    BusinessLogic -> EvidenceService;
+    BusinessLogic -> TimelineService;
+    BusinessLogic -> SearchService;
+    BusinessLogic -> AIService;
+    
+    // Data layer connections
+    DataAccess -> PostgreSQL;
+    DataAccess -> PGVector;
+    DataAccess -> Milvus;
+    DataAccess -> FileStorage;
+    
+    // External services connections
+    AIService -> ClaudeAPI [label="API Calls"];
+    EvidenceService -> OCRService;
+    FileStorage -> CloudStorage [label="Sync"];
+    
+    // Special connections
+    SearchService -> PGVector [style=dashed, label="Vector Search"];
+    SearchService -> Milvus [style=dashed, label="Vector Search"];
+    AIService -> PGVector [style=dashed, label="Store Embeddings"];
+    
+    // Legend
+    subgraph cluster_legend {
+        label="Legend";
+        style=filled;
+        color=white;
+        
+        Frontend [label="Frontend Component", fillcolor="#a8d1ff"];
+        Backend [label="Backend Component", fillcolor="#ffb3b3"];
+        Data [label="Data Storage", fillcolor="#b3ffb3"];
+        External [label="External Service", fillcolor="#ffffb3"];
+    }
+}
