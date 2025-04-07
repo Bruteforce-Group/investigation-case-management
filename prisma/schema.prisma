@@ -1,0 +1,355 @@
+// Prisma schema for Investigation Case Management Web Application
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// User and authentication models
+model User {
+  id                String              @id @default(cuid())
+  name              String?
+  email             String              @unique
+  emailVerified     DateTime?
+  image             String?
+  password          String?             // Hashed password
+  role              UserRole            @default(INVESTIGATOR)
+  createdAt         DateTime            @default(now())
+  updatedAt         DateTime            @updatedAt
+  cases             CaseAssignment[]
+  evidenceUploaded  Evidence[]          @relation("UploadedBy")
+  evidenceModified  Evidence[]          @relation("ModifiedBy")
+  timelineEvents    TimelineEvent[]
+  comments          Comment[]
+  activities        ActivityLog[]
+  sessions          Session[]
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+enum UserRole {
+  ADMIN
+  INVESTIGATOR
+  ANALYST
+  VIEWER
+}
+
+// Core case management models
+model Case {
+  id                String              @id @default(cuid())
+  caseNumber        String              @unique
+  title             String
+  description       String?
+  status            CaseStatus          @default(ACTIVE)
+  priority          CasePriority        @default(MEDIUM)
+  startDate         DateTime
+  endDate           DateTime?
+  createdAt         DateTime            @default(now())
+  updatedAt         DateTime            @updatedAt
+  assignments       CaseAssignment[]
+  evidence          Evidence[]
+  persons           Person[]
+  locations         Location[]
+  timelineEvents    TimelineEvent[]
+  tags              CaseTag[]
+  comments          Comment[]
+  storylineAnalyses StorylineAnalysis[]
+  activities        ActivityLog[]
+}
+
+model CaseAssignment {
+  id        String   @id @default(cuid())
+  caseId    String
+  userId    String
+  role      String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  case      Case     @relation(fields: [caseId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([caseId, userId])
+}
+
+enum CaseStatus {
+  ACTIVE
+  INACTIVE
+  CLOSED
+  ARCHIVED
+}
+
+enum CasePriority {
+  LOW
+  MEDIUM
+  HIGH
+  CRITICAL
+}
+
+model CaseTag {
+  id        String   @id @default(cuid())
+  name      String
+  color     String?
+  caseId    String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  case      Case     @relation(fields: [caseId], references: [id], onDelete: Cascade)
+
+  @@unique([name, caseId])
+}
+
+// Evidence management models
+model Evidence {
+  id                String              @id @default(cuid())
+  title             String
+  description       String?
+  evidenceType      EvidenceType
+  fileUrl           String?             // URL to file in R2 storage
+  fileHash          String?             // Hash for integrity verification
+  fileSize          Int?                // Size in bytes
+  fileMimeType      String?             // MIME type
+  originalFilename  String?             // Original filename
+  collectionDate    DateTime?           // When evidence was collected
+  collectionLocation String?            // Where evidence was collected
+  uploadedById      String              // Who uploaded the evidence
+  uploadedAt        DateTime            @default(now())
+  modifiedById      String?             // Who last modified the evidence
+  modifiedAt        DateTime            @updatedAt
+  caseId            String              // Case this evidence belongs to
+  ocrText           String?             // Extracted text from OCR
+  transcription     String?             // Transcription for audio files
+  vectorEmbedding   Unsupported("vector")? // Vector embedding for semantic search
+  metadataJson      Json?               // Additional metadata as JSON
+  createdAt         DateTime            @default(now())
+  updatedAt         DateTime            @updatedAt
+  case              Case                @relation(fields: [caseId], references: [id], onDelete: Cascade)
+  uploadedBy        User                @relation("UploadedBy", fields: [uploadedById], references: [id])
+  modifiedBy        User?               @relation("ModifiedBy", fields: [modifiedById], references: [id])
+  timelineEvents    TimelineEvidence[]
+  persons           EvidencePerson[]
+  locations         EvidenceLocation[]
+  tags              EvidenceTag[]
+  comments          Comment[]
+  activities        ActivityLog[]
+}
+
+enum EvidenceType {
+  DOCUMENT
+  IMAGE
+  AUDIO
+  VIDEO
+  PHYSICAL
+  OTHER
+}
+
+model EvidenceTag {
+  id          String   @id @default(cuid())
+  name        String
+  color       String?
+  evidenceId  String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  evidence    Evidence @relation(fields: [evidenceId], references: [id], onDelete: Cascade)
+
+  @@unique([name, evidenceId])
+}
+
+// Timeline models
+model TimelineEvent {
+  id              String              @id @default(cuid())
+  title           String
+  description     String?
+  eventDate       DateTime            // When the event occurred
+  endDate         DateTime?           // For events with duration
+  location        String?             // Location of the event
+  importance      Int                 @default(1) // 1-5 scale of importance
+  confidenceLevel Int                 @default(3) // 1-5 scale of confidence
+  createdById     String              // Who created this event
+  caseId          String              // Case this event belongs to
+  vectorEmbedding Unsupported("vector")? // Vector embedding for semantic search
+  createdAt       DateTime            @default(now())
+  updatedAt       DateTime            @updatedAt
+  case            Case                @relation(fields: [caseId], references: [id], onDelete: Cascade)
+  createdBy       User                @relation(fields: [createdById], references: [id])
+  evidence        TimelineEvidence[]
+  persons         TimelinePerson[]
+  comments        Comment[]
+  activities      ActivityLog[]
+}
+
+model TimelineEvidence {
+  id              String        @id @default(cuid())
+  timelineEventId String
+  evidenceId      String
+  relationship    String?       // How this evidence relates to the event
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+  timelineEvent   TimelineEvent @relation(fields: [timelineEventId], references: [id], onDelete: Cascade)
+  evidence        Evidence      @relation(fields: [evidenceId], references: [id], onDelete: Cascade)
+
+  @@unique([timelineEventId, evidenceId])
+}
+
+// Person of interest models
+model Person {
+  id              String              @id @default(cuid())
+  firstName       String
+  lastName        String
+  alias           String?
+  dateOfBirth     DateTime?
+  description     String?
+  role            String?             // Role in the case
+  contactInfo     Json?               // Contact information as JSON
+  caseId          String              // Case this person belongs to
+  vectorEmbedding Unsupported("vector")? // Vector embedding for semantic search
+  createdAt       DateTime            @default(now())
+  updatedAt       DateTime            @updatedAt
+  case            Case                @relation(fields: [caseId], references: [id], onDelete: Cascade)
+  evidence        EvidencePerson[]
+  timelineEvents  TimelinePerson[]
+  relationships   Relationship[]      @relation("PersonA")
+  relatedTo       Relationship[]      @relation("PersonB")
+  comments        Comment[]
+  activities      ActivityLog[]
+}
+
+model EvidencePerson {
+  id          String   @id @default(cuid())
+  evidenceId  String
+  personId    String
+  relationship String?  // How this person relates to the evidence
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  evidence    Evidence @relation(fields: [evidenceId], references: [id], onDelete: Cascade)
+  person      Person   @relation(fields: [personId], references: [id], onDelete: Cascade)
+
+  @@unique([evidenceId, personId])
+}
+
+model TimelinePerson {
+  id              String        @id @default(cuid())
+  timelineEventId String
+  personId        String
+  involvement     String?       // How this person was involved in the event
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+  timelineEvent   TimelineEvent @relation(fields: [timelineEventId], references: [id], onDelete: Cascade)
+  person          Person        @relation(fields: [personId], references: [id], onDelete: Cascade)
+
+  @@unique([timelineEventId, personId])
+}
+
+model Relationship {
+  id          String   @id @default(cuid())
+  personAId   String
+  personBId   String
+  type        String   // Type of relationship
+  description String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  personA     Person   @relation("PersonA", fields: [personAId], references: [id], onDelete: Cascade)
+  personB     Person   @relation("PersonB", fields: [personBId], references: [id], onDelete: Cascade)
+
+  @@unique([personAId, personBId, type])
+}
+
+// Location models
+model Location {
+  id              String              @id @default(cuid())
+  name            String
+  address         String?
+  city            String?
+  state           String?
+  country         String?
+  postalCode      String?
+  latitude        Float?
+  longitude       Float?
+  description     String?
+  caseId          String              // Case this location belongs to
+  vectorEmbedding Unsupported("vector")? // Vector embedding for semantic search
+  createdAt       DateTime            @default(now())
+  updatedAt       DateTime            @updatedAt
+  case            Case                @relation(fields: [caseId], references: [id], onDelete: Cascade)
+  evidence        EvidenceLocation[]
+  comments        Comment[]
+  activities      ActivityLog[]
+}
+
+model EvidenceLocation {
+  id          String   @id @default(cuid())
+  evidenceId  String
+  locationId  String
+  relationship String?  // How this location relates to the evidence
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  evidence    Evidence @relation(fields: [evidenceId], references: [id], onDelete: Cascade)
+  location    Location @relation(fields: [locationId], references: [id], onDelete: Cascade)
+
+  @@unique([evidenceId, locationId])
+}
+
+// Storyline analysis models
+model StorylineAnalysis {
+  id                  String   @id @default(cuid())
+  caseId              String
+  title               String
+  content             String   @db.Text
+  alternativeScenarios Json?    // Alternative scenarios as JSON
+  confidenceLevel     Int      @default(3) // 1-5 scale of confidence
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+  case                Case     @relation(fields: [caseId], references: [id], onDelete: Cascade)
+  comments            Comment[]
+  activities          ActivityLog[]
+}
+
+// Comment and activity models
+model Comment {
+  id                String            @id @default(cuid())
+  content           String
+  authorId          String
+  caseId            String?
+  evidenceId        String?
+  personId          String?
+  locationId        String?
+  timelineEventId   String?
+  storylineAnalysisId String?
+  createdAt         DateTime          @default(now())
+  updatedAt         DateTime          @updatedAt
+  author            User              @relation(fields: [authorId], references: [id])
+  case              Case?             @relation(fields: [caseId], references: [id], onDelete: Cascade)
+  evidence          Evidence?         @relation(fields: [evidenceId], references: [id], onDelete: Cascade)
+  person            Person?           @relation(fields: [personId], references: [id], onDelete: Cascade)
+  location          Location?         @relation(fields: [locationId], references: [id], onDelete: Cascade)
+  timelineEvent     TimelineEvent?    @relation(fields: [timelineEventId], references: [id], onDelete: Cascade)
+  storylineAnalysis StorylineAnalysis? @relation(fields: [storylineAnalysisId], references: [id], onDelete: Cascade)
+}
+
+model ActivityLog {
+  id                String            @id @default(cuid())
+  action            String
+  details           String?
+  userId            String
+  caseId            String?
+  evidenceId        String?
+  personId          String?
+  locationId        String?
+  timelineEventId   String?
+  storylineAnalysisId String?
+  createdAt         DateTime          @default(now())
+  user              User              @relation(fields: [userId], references: [id])
+  case              Case?             @relation(fields: [caseId], references: [id], onDelete: Cascade)
+  evidence          Evidence?         @relation(fields: [evidenceId], references: [id], onDelete: Cascade)
+  person            Person?           @relation(fields: [personId], references: [id], onDelete: Cascade)
+  location          Location?         @relation(fields: [locationId], references: [id], onDelete: Cascade)
+  timelineEvent     TimelineEvent?    @relation(fields: [timelineEventId], references: [id], onDelete: Cascade)
+  storylineAnalysis StorylineAnalysis? @relation(fields: [storylineAnalysisId], references: [id], onDelete: Cascade)
+}
