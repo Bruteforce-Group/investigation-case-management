@@ -1,0 +1,56 @@
+{
+  "migrated_at": "2025-09-19T23:27:39.425496",
+  "original_path": "/Users/danielborrowman/Documents/GitHub/investigation-case-management",
+  "analysis": {
+    "name": "investigation-case-management",
+    "path": "/Users/danielborrowman/Documents/GitHub/investigation-case-management",
+    "size_mb": 2.47,
+    "file_count": 170,
+    "project_types": [
+      "git",
+      "docker",
+      "shell",
+      "config",
+      "react",
+      "node",
+      "nextjs",
+      "documentation"
+    ],
+    "languages": "set()",
+    "frameworks": "set()",
+    "has_git": true,
+    "git_status": {
+      "current_branch": "main",
+      "has_changes": true,
+      "remotes": [
+        "https://github.com/Bruteforce-Group/investigation-case-management.git"
+      ],
+      "last_commit": {
+        "hash": "68b19edd",
+        "message": "Add Docker containerization with local LLM support",
+        "date": "2025-04-15 15:03:17 -0400"
+      }
+    },
+    "dependencies": [],
+    "cleanup_candidates": [
+      "build.sh",
+      ".git/logs/HEAD",
+      ".git/logs/refs/heads/main",
+      ".git/logs/refs/remotes/origin/HEAD"
+    ],
+    "cleanup_size_mb": 0.01,
+    "description": "Project type: git, docker, shell. Size: 2.47MB (170 files). Git: main branch",
+    "priority": "medium",
+    "status": "active",
+    "last_modified": "2025-05-18T18:25:21"
+  },
+  "cleanup_performed": {
+    "project": "investigation-case-management",
+    "files_removed": [],
+    "dirs_removed": [
+      ".git/logs"
+    ],
+    "size_freed_mb": 0.0,
+    "errors": []
+  }
+}
