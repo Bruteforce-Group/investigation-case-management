@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useRouter } from 'next/navigation';
 
@@ -16,6 +16,12 @@ const AuthGuard: React.FC<AuthGuardProps> = ({
   const { user, isAuthenticated, loading } = useAuth();
   const router = useRouter();
 
+  useEffect(() => {
+    if (!loading && !isAuthenticated) {
+      router.push('/login');
+    }
+  }, [loading, isAuthenticated, router]);
+
   // If authentication is still loading, show a loading state
   if (loading) {
     return (
@@ -26,14 +32,8 @@ const AuthGuard: React.FC<AuthGuardProps> = ({
     );
   }
 
-  // If not authenticated, redirect to login
+  // If not authenticated, show redirect state while useEffect navigates
   if (!isAuthenticated) {
-    // In client components, we need to use useEffect for redirects
-    React.useEffect(() => {
-      router.push('/login');
-    }, [router]);
-
-    // Show a loading state while redirecting
     return (
       <div className="flex items-center justify-center min-h-screen">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600"></div>
@@ -56,7 +56,7 @@ const AuthGuard: React.FC<AuthGuardProps> = ({
             <div className="ml-3">
               <h3 className="text-sm font-medium text-red-800">Unauthorized Access</h3>
               <div className="mt-2 text-sm text-red-700">
-                <p>You don't have permission to access this page.</p>
+                <p>You don&apos;t have permission to access this page.</p>
               </div>
               <div className="mt-4">
                 <button
